@@ -8,20 +8,13 @@ workflows:
   tests_tests_tests:
     jobs:
       - mabl-local
-      # - mabl-cloud
+      - mabl-cloud:
+          requires:
+              - mabl-local 
 
 jobs:
-  mabl-cloud:
-    docker:
-      - image: cimg/base:2021.04
-    resource_class: small
-    steps:
-      - mabl-trigger-tests/run-tests:
-          api-key: MABL_CI_KEY
-          application-id: MjGqZ5E2OCsgxIeS66cF9w-a
-          environment-id: nwwfqkMqWbqq3jPFMfI6sw-e
-  
   mabl-local:
+    # Modified snippet to run local tests within Docker executor
     working_directory: /home/mabl
     docker:
       - image: mablhq/mabl-cli-chromium
@@ -32,11 +25,21 @@ jobs:
             # MABL_SSL_VERIFY: true
         entrypoint: bash
     steps: 
-      - run: env
       - run: bash run_command_with_auth.sh tests run --id b4eEntmxZ1x0mB4ML2Cr9g-j --workspace-id kJMlpeP11w5Hz8oDkVAm2g-w --headless
-    
 
+    # Reference: local execution in mabl documentation
     # machine: true
     # steps:
     #   - run: docker run -e MABL_REST_API_KEY=$MABL_CLI_KEY --rm mablhq/mabl-cli-chromium \
     #             tests run --id b4eEntmxZ1x0mB4ML2Cr9g-j --workspace-id kJMlpeP11w5Hz8oDkVAm2g-w --headless
+
+  mabl-cloud:
+    # mabl documentation lists machine executor, however using Docker executor will save on build credits.
+    docker:
+      - image: cimg/base:2021.04
+    resource_class: small
+    steps:
+      - mabl-trigger-tests/run-tests:
+          api-key: MABL_CI_KEY
+          application-id: MjGqZ5E2OCsgxIeS66cF9w-a
+          environment-id: nwwfqkMqWbqq3jPFMfI6sw-e
