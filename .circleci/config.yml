@@ -1,0 +1,159 @@
+version: 2.1
+orbs:
+  mabl:         mabl/trigger-tests@1.0.8
+
+workflows:
+  version: 2
+  build_deploy:
+    jobs:
+      - unit-test
+      - sum-coverage:
+          requires:
+            - unit-test
+      - maven/test:
+          name: "Static Analysis"
+          command: 'clean org.jacoco:jacoco-maven-plugin:prepare-agent package sonar:sonar 
+                     -Dsonar.host.url=https://sonarcloud.io
+                     -Dsonar.projectKey=heug_demo-blueskygreenbuilds
+                     -Dsonar.organization=heug 
+                     -Dsonar.login=${SONAR_KEY} 
+                     -Dsonar.branch.name=${CIRCLE_BRANCH}'
+          requires:
+            - unit-test
+      - e2e_headless:
+          name: "headless mabl tests"
+          requires:
+            - unit-test
+            - maven/test
+          steps:
+            - maven/with_cache:
+                steps:
+                  - run: echo "hello"
+                  # - run: ./mvnw verify -B -Dspring.profiles.active=it -Dsauce.tunnel="chrome" 
+
+      - deploy_staging:
+          requires:
+            - e2e_headless
+          steps:
+            - run: echo "deploy to staging"
+
+      - e2e_staging:
+          requires:
+            - deploy_staging
+          steps:
+            - run: echo "mabl cloud test against staging"
+
+
+      - package-jar:
+          requires:
+            - unit-test
+          filters:
+            branches:
+              only: master
+
+      - hold:
+          type: approval
+          requires:
+            - cloudfoundry/dark_deploy
+            - "IE Tests"
+            - "Chrome Tests"
+          filters:
+            branches:
+              only: master
+              
+      - prod_deploy:
+          requires:
+            - hold
+          filters:
+            branches:
+              only: master
+
+      - e2e_prod:
+          requires:
+            - prod_deploy
+          steps:
+            - run: echo "mabl prod test"
+
+
+
+jobs:
+  unit-test:
+    docker:
+      - image: circleci/openjdk:8
+    parallelism: 2
+    steps:
+      - checkout
+      - run:
+          name: Enable Test Splitting
+          command: |
+            mkdir -p .circleci/tests/
+
+            # generate excluded surefire tests using provided pattern
+            circleci tests glob src/test/java/**/*Test*.java | \
+              sed -e 's#^src/test/java/\(.*\)\.java#\1#' | \
+              tr "/" "." > .circleci/tests/surefire_classnames
+            cat .circleci/tests/surefire_classnames | \
+              circleci tests split --split-by=timings --timings-type=classname > /tmp/this_node_tests
+            cat .circleci/tests/surefire_classnames | \
+              grep -xvf /tmp/this_node_tests > .circleci/tests/surefire_classnames_ignore_list
+      - store_artifacts:
+          path: .circleci/tests/
+      - maven/with_cache:
+          steps:
+            - run:
+                name: Run Tests
+                command: mvn test -B -Dsurefire.excludesFile=.circleci/tests/surefire_classnames_ignore_list 
+      - maven/process_test_results:
+          test_results_path: target/surefire-reports
+      - run:
+          name: Collect Code Cov
+          command: |
+            curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
+            chmod +x ./cc-test-reporter
+            ./mvnw jacoco:report #convert binary jacoco.exec to XML in target/site/jacoco
+            export JACOCO_SOURCE_PATH="src/main/java"
+            ./cc-test-reporter format-coverage -t jacoco  target/site/jacoco/jacoco.xml -o "coverage/codeclimate.$CIRCLE_NODE_INDEX.json"
+      - persist_to_workspace:
+          root: coverage
+          paths:
+            - codeclimate.*.json
+    
+  sum-coverage:
+    docker:
+      - image: circleci/node:10
+        environment:
+          PARTS: 2
+    working_directory: ~/repo
+    steps:
+      - attach_workspace:
+          at: coverage
+      - run:
+          name: Aggregate Code Coverage
+          command: |
+            curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
+            chmod +x ./cc-test-reporter
+            ./cc-test-reporter sum-coverage --output - --parts $PARTS coverage/codeclimate.*.json | ./cc-test-reporter upload-coverage --debug --input -
+     
+  package-jar:
+    docker:
+      - image: circleci/openjdk@sha256:76e4d88773f25ac52c3f0c63bf63b8e346ce799fbfe3691566f03d987795c70f
+    working_directory: ~/repo
+    steps:
+      - checkout
+      - maven/with_cache:
+          steps: 
+            - run: mvn package -B -DskipTests=true
+      - run:
+          name: Copy deployment artifacts to workspace
+          command: |
+            cp target/blueskygreenbuilds-*.jar /tmp/standalone-app.jar
+            cp src/main/resources/deployment/cf-manifest.yml /tmp/
+      - store_artifacts:
+          path: /tmp/standalone-app.jar
+      - store_artifacts:
+          path: /tmp/cf-manifest.yml
+      - persist_to_workspace:
+          root: /tmp
+          paths:
+            - standalone-app.jar
+            - cf-manifest.yml
