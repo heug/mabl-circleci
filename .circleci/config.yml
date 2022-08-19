@@ -32,9 +32,9 @@ jobs:
             # MABL_HTTP_PROXY_MODE: false
             # MABL_SSL_VERIFY: true
         entrypoint: bash
-        user: mabl
+        # user: mabl
+        working_directory: /home/mabl
     steps:
-
       - run: env
       - run: ls
       - run: pwd
