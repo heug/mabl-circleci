@@ -22,6 +22,7 @@ jobs:
           environment-id: nwwfqkMqWbqq3jPFMfI6sw-e
   
   mabl-local:
+    working_directory: /home/mabl
     docker:
       - image: mablhq/mabl-cli-chromium
         environment:
@@ -33,8 +34,7 @@ jobs:
             # MABL_SSL_VERIFY: true
         entrypoint: bash
         # user: mabl
-        working_directory: /home/mabl
-    steps:
+    steps: 
       - run: env
       - run: ls
       - run: pwd
