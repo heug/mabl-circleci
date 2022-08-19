@@ -17,7 +17,7 @@ jobs:
     machine: true
     steps:
       - mabl-trigger-tests/run-tests:
-          api-key: ${MABL_CI_KEY}
+          api-key: MABL_CI_KEY
           application-id: MjGqZ5E2OCsgxIeS66cF9w-a
           environment-id: nwwfqkMqWbqq3jPFMfI6sw-e
   
