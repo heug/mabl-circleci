@@ -26,7 +26,7 @@ jobs:
     docker:
       - image: mablhq/mabl-cli-chromium
         environment:
-          MABL_REST_API_KEY: $MABL_CLI_KEY
+          MABL_REST_API_KEY: ${MABL_CLI_KEY}
           # MABL_CLI_NAME: mabl
           # Optional
             # MABL_HTTP_PROXY: IP Address:port
