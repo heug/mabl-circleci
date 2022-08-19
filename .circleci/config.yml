@@ -1,3 +1,7 @@
+# Add MABL_CI_KEY and MABL_REST_API_KEY to CircleCI Environment Variables before executing
+# MABL_CI_KEY==mabl CI/CD Integration Key
+# MABL_REST_API_KEY==mabl CLI API Key
+
 version: 2.1
 
 orbs:
