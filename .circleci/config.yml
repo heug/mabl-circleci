@@ -21,7 +21,7 @@ jobs:
     # Modified snippet to run local tests within Docker executor
     working_directory: /home/mabl
     docker:
-      - image: mablhq/mabl-cli-chromium
+      - image: mablhq/mabl-cli-chromium:1.29.19
         environment:
           # Optional
             # MABL_HTTP_PROXY: IP Address:port
@@ -31,14 +31,14 @@ jobs:
     steps: 
       - run: bash run_command_with_auth.sh tests run --id b4eEntmxZ1x0mB4ML2Cr9g-j --workspace-id kJMlpeP11w5Hz8oDkVAm2g-w --headless
 
-    # Reference: local execution in mabl documentation
+    # Reference: local test execution in mabl documentation, uses machine executor
     # machine: true
     # steps:
     #   - run: docker run -e MABL_REST_API_KEY=$MABL_CLI_KEY --rm mablhq/mabl-cli-chromium \
     #             tests run --id b4eEntmxZ1x0mB4ML2Cr9g-j --workspace-id kJMlpeP11w5Hz8oDkVAm2g-w --headless
 
   mabl-cloud:
-    # mabl documentation lists machine executor, however using Docker executor will save on build credits.
+    # mabl documentation lists machine executor, however using Docker executor will save on build credits and speed up builds.
     docker:
       - image: cimg/base:2021.04
     resource_class: small
