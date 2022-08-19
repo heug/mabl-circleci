@@ -12,8 +12,9 @@ workflows:
 
 jobs:
   mabl-cloud:
-    docker:
-      - image: cimg/base:2021.04
+    # docker:
+    #   - image: cimg/base:2021.04
+    machine: true
     steps:
       - mabl-trigger-tests/run-tests:
           api-key: mx4aSPORh5NKgiub8a30yg
@@ -21,10 +22,14 @@ jobs:
           environment-id: nwwfqkMqWbqq3jPFMfI6sw-e
   
   mabl-local:
-    docker:
-      - image: mablhq/mabl-cli-chromium
-        environment:
-          MABL_REST_API_KEY: $MABL_CLI_KEY
-        command: tests run --id b4eEntmxZ1x0mB4ML2Cr9g-j --workspace-id kJMlpeP11w5Hz8oDkVAm2g-w --headless
-    steps: 
-      - run: echo "Hello world"
+    # docker:
+    #   - image: mablhq/mabl-cli-chromium
+    #     environment:
+    #       MABL_REST_API_KEY: $MABL_CLI_KEY
+    #     command: tests run --id b4eEntmxZ1x0mB4ML2Cr9g-j --workspace-id kJMlpeP11w5Hz8oDkVAm2g-w --headless
+    # steps: 
+    #   - run: echo "Hello world"
+    machine: true
+    steps:
+      - run: docker run -e MABL_REST_API_KEY=$MABL_CLI_KEY --rm mablhq/mabl-cli-chromium \
+                tests run --id b4eEntmxZ1x0mB4ML2Cr9g-j --workspace-id kJMlpeP11w5Hz8oDkVAm2g-w --headless
