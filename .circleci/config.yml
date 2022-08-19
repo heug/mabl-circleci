@@ -7,8 +7,8 @@ workflows:
   version: 2
   tests_tests_tests:
     jobs:
-      # - mabl-local
-      - mabl-cloud
+      - mabl-local
+      # - mabl-cloud
 
 jobs:
   mabl-cloud:
@@ -22,14 +22,22 @@ jobs:
           environment-id: nwwfqkMqWbqq3jPFMfI6sw-e
   
   mabl-local:
-    # docker:
-    #   - image: mablhq/mabl-cli-chromium
-    #     environment:
-    #       MABL_REST_API_KEY: $MABL_CLI_KEY
-    #     command: tests run --id b4eEntmxZ1x0mB4ML2Cr9g-j --workspace-id kJMlpeP11w5Hz8oDkVAm2g-w --headless
-    # steps: 
-    #   - run: echo "Hello world"
-    machine: true
-    steps:
-      - run: docker run -e MABL_REST_API_KEY=$MABL_CLI_KEY --rm mablhq/mabl-cli-chromium \
-                tests run --id b4eEntmxZ1x0mB4ML2Cr9g-j --workspace-id kJMlpeP11w5Hz8oDkVAm2g-w --headless
+    docker:
+      - image: mablhq/mabl-cli-chromium
+        environment:
+          MABL_REST_API_KEY: $MABL_CLI_KEY
+          MABL_CLI_NAME: mabl
+          # Optional
+            # MABL_HTTP_PROXY: IP Address:port
+            # MABL_HTTP_PROXY_MODE: false
+            # MABL_SSL_VERIFY: true
+        entrypoint: bash
+        command: tests run --id b4eEntmxZ1x0mB4ML2Cr9g-j --workspace-id kJMlpeP11w5Hz8oDkVAm2g-w --headless
+    steps: 
+      - run: bash run_command_with_auth.sh --id b4eEntmxZ1x0mB4ML2Cr9g-j --workspace-id kJMlpeP11w5Hz8oDkVAm2g-w --headless
+    
+
+    # machine: true
+    # steps:
+    #   - run: docker run -e MABL_REST_API_KEY=$MABL_CLI_KEY --rm mablhq/mabl-cli-chromium \
+    #             tests run --id b4eEntmxZ1x0mB4ML2Cr9g-j --workspace-id kJMlpeP11w5Hz8oDkVAm2g-w --headless
