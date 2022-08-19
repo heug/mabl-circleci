@@ -26,14 +26,15 @@ jobs:
       - image: mablhq/mabl-cli-chromium
         environment:
           MABL_REST_API_KEY: $MABL_CLI_KEY
-          MABL_CLI_NAME: mabl
+          # MABL_CLI_NAME: mabl
           # Optional
             # MABL_HTTP_PROXY: IP Address:port
             # MABL_HTTP_PROXY_MODE: false
             # MABL_SSL_VERIFY: true
         entrypoint: bash
+        user: mabl
     steps: 
-      - run: bash run_command_with_auth.sh --id b4eEntmxZ1x0mB4ML2Cr9g-j --workspace-id kJMlpeP11w5Hz8oDkVAm2g-w --headless
+      - run: bash run_command_with_auth.sh tests run --id b4eEntmxZ1x0mB4ML2Cr9g-j --workspace-id kJMlpeP11w5Hz8oDkVAm2g-w --headless
     
 
     # machine: true
