@@ -14,8 +14,7 @@ jobs:
   mabl-cloud:
     docker:
       - image: cimg/base:2021.04
-      - resource_class: small
-    # machine: true
+    resource_class: small
     steps:
       - mabl-trigger-tests/run-tests:
           api-key: MABL_CI_KEY
