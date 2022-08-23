@@ -11,10 +11,19 @@ workflows:
   version: 2
   tests_tests_tests:
     jobs:
+      - unit-tests
       - mabl-local
+      - deploy-to-qa:
+          requires:
+              - unit-tests
+              - mabl-local
       - mabl-cloud:
           requires:
-              - mabl-local 
+              - deploy-to-qa 
+      - deploy-to-prod:
+          type: approval
+          requires:
+              - mabl-cloud
 
 jobs:
   mabl-local:
@@ -54,3 +63,25 @@ jobs:
           # browsers: chrome
           # labels: myPlanLabel
           # mabl-branch: developmentBranch
+
+  unit-tests: 
+    docker:
+      - image: cimg/base:2021.04
+    resource_class: small
+    steps:
+      - run: "sleep 5"
+
+  deploy-to-qa: 
+    docker:
+      - image: cimg/base:2021.04
+    resource_class: small
+    steps:
+      - run: "sleep 5" 
+  
+  deploy-to-prod: 
+    docker:
+      - image: cimg/base:2021.04
+    resource_class: small
+    steps:
+      - run: "sleep 10"
+    
