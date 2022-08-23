@@ -30,7 +30,7 @@ jobs:
   mabl-local:
     machine: true
     steps:
-      - run: docker run -e MABL_REST_API_KEY=$MABL_REST_API_KEY --rm mablhq/mabl-cli-chromium \
+      - run: docker run -e MABL_REST_API_KEY=$MABL_REST_API_KEY --rm mablhq/mabl-cli-chromium:1.29.19 \
                 tests run --id b4eEntmxZ1x0mB4ML2Cr9g-j --workspace-id kJMlpeP11w5Hz8oDkVAm2g-w --headless
     
     ### Modified snippet to run local tests within Docker executor
